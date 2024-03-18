@@ -1,0 +1,39 @@
+import pandas as pd
+import geopandas as gpd
+
+import folium
+from folium import Choropleth
+from folium.plugins import HeatMap
+
+from learntools.core import binder
+binder.bind(globals())
+from learntools.geospatial.ex3 import *
+
+def embed_map(m, file_name):
+    from IPython.display import IFrame
+    m.save(file_name)
+    return IFrame(file_name, width='100%', height='500px')
+
+plate_boundaries = gpd.read_file("../input/geospatial-learn-course-data/Plate_Boundaries/Plate_Boundaries/Plate_Boundaries.shp")
+plate_boundaries['coordinates'] = plate_boundaries.apply(lambda x: [(b,a) for (a,b) in list(x.geometry.coords)], axis='columns')
+plate_boundaries.drop('geometry', axis=1, inplace=True)
+
+plate_boundaries.head()
+
+# Load the data and print the first 5 rows
+earthquakes = pd.read_csv("../input/geospatial-learn-course-data/earthquakes1970-2014.csv", parse_dates=["DateTime"])
+earthquakes.head()
+
+# Create a base map with plate boundaries
+m_1 = folium.Map(location=[35,136], tiles='cartodbpositron', zoom_start=5)
+for i in range(len(plate_boundaries)):
+    folium.PolyLine(locations=plate_boundaries.coordinates.iloc[i], weight=2, color='black').add_to(m_1)
+
+# Your code here: Add a heatmap to the map
+____
+
+# Uncomment to see a hint
+#q_1.a.hint()
+
+# Show the map
+embed_map(m_1, 'q_1.html')
