@@ -30,7 +30,7 @@ for i in range(len(plate_boundaries)):
     folium.PolyLine(locations=plate_boundaries.coordinates.iloc[i], weight=2, color='black').add_to(m_1)
 
 # Your code here: Add a heatmap to the map
-____
+
 
 # Uncomment to see a hint
 #q_1.a.hint()
