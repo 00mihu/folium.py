@@ -19,34 +19,26 @@ plate_boundaries['coordinates'] = plate_boundaries.apply(lambda x: [(b,a) for (a
 plate_boundaries.drop('geometry', axis=1, inplace=True)
 
 plate_boundaries.head()
-
-# Load the data and print the first 5 rows
+# head
 earthquakes = pd.read_csv("../input/geospatial-learn-course-data/earthquakes1970-2014.csv", parse_dates=["DateTime"])
 earthquakes.head()
 
-# Create a base map with plate boundaries
+# base map with plate boundaries
 m_1 = folium.Map(location=[35,136], tiles='cartodbpositron', zoom_start=5)
 for i in range(len(plate_boundaries)):
     folium.PolyLine(locations=plate_boundaries.coordinates.iloc[i], weight=2, color='black').add_to(m_1)
 
-# Your code here: Add a heatmap to the map
-
-
-# Uncomment to see a hint
-#q_1.a.hint()
-
-# Show the map
+# map
 embed_map(m_1, 'q_1.html')
 
-### 2 
 
 m_2 = folium.Map(location=[35, 136], tiles='cartodbpositron', zoom_start=5)
 
-# Add plate boundaries
+# plate boundaries
 for i in range(len(plate_boundaries)):
     folium.PolyLine(locations=plate_boundaries.coordinates.iloc[i], weight=2, color='black').add_to(m_2)
 
-# Add circles to visualize earthquake depth
+# visualize earthquake depth
 for i in range(len(earthquakes)):
     folium.Circle(
         location=[earthquakes.iloc[i]['Latitude'], earthquakes.iloc[i]['Longitude']],
@@ -56,7 +48,7 @@ for i in range(len(earthquakes)):
         fill_opacity=0.6,
         fill_color=color_producer(earthquakes.iloc[i]['Depth'])).add_to(m_2)
 
-# Custom function to assign a color to each circle based on depth
+# color each circles based on depth
 def color_producer(val):
     if val < 50:
         return 'forestgreen'
@@ -65,27 +57,37 @@ def color_producer(val):
     else:
         return 'darkred'
 
-# Save the map to an HTML file
+# map to an html
 m_2.save('q_2.html')
 m_2
 
-# 3
-
-# GeoDataFrame with prefecture boundaries
+# gdf = GeoDataFrame with prefecture boundaries
 prefectures = gpd.read_file("../input/geospatial-learn-course-data/japan-prefecture-boundaries/japan-prefecture-boundaries/japan-prefecture-boundaries.shp")
 prefectures.set_index('prefecture', inplace=True)
 prefectures.head()
 
-# DataFrame containing population of each prefecture
+# df containing population of each prefecture
 population = pd.read_csv("../input/geospatial-learn-course-data/japan-prefecture-population.csv")
 population.set_index('prefecture', inplace=True)
 
-# Calculate area (in square kilometers) of each prefecture
+# calc area sq2 of each pref
 area_sqkm = pd.Series(prefectures.geometry.to_crs(epsg=32654).area / 10**6, name='area_sqkm')
 stats = population.join(area_sqkm)
 
-# Add density (per square kilometer) of each prefecture
+# density km2 of prefs
 stats['density'] = stats["population"] / stats["area_sqkm"]
 stats.head()
 
 m_3 = folium.Map(location=[35,136], tiles='cartodbpositron', zoom_start=5)
+
+# choropleth map - population density
+Choropleth(geo_data=prefectures.__geo_interface__, 
+           data=stats['density'], 
+           key_on="feature.properties.prefecture",  # Adjust the key_on parameter
+           fill_color='YlGnBu', 
+           legend_name='Population Density (people per sqkm)'
+          ).add_to(m_3)
+
+# save to HTML
+embed_map(m_3, 'q_3.html')
+m_3
